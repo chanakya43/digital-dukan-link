@@ -1,5 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
 
+// Type-safe wrappers will auto-resolve once the migration is approved and types regenerate.
+// Using explicit casting for now.
+const db = supabase as any;
+
 // Vendor queries
 export const fetchAllVendors = async () => {
   const { data: vendors, error } = await supabase
