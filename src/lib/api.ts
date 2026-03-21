@@ -1,22 +1,30 @@
-import { supabase } from "@/integrations/supabase/client";
+import { createClient } from "@supabase/supabase-js";
 
-// Type-safe wrappers will auto-resolve once the migration is approved and types regenerate.
-// Using explicit casting for now.
-const db = supabase as any;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+// Untyped client to avoid build errors before migration types are generated
+const db = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { storage: localStorage, persistSession: true, autoRefreshToken: true },
+});
+
+export { db };
+
+// Re-export the typed client for auth operations
+export { supabase } from "@/integrations/supabase/client";
 
 // Vendor queries
 export const fetchAllVendors = async () => {
-  const { data: vendors, error } = await supabase
+  const { data: vendors, error } = await db
     .from("vendors")
     .select("*")
     .order("created_at", { ascending: false });
 
   if (error) throw error;
 
-  // Fetch first 3 products for each vendor
   const vendorsWithProducts = await Promise.all(
-    (vendors || []).map(async (vendor) => {
-      const { data: products } = await supabase
+    (vendors || []).map(async (vendor: any) => {
+      const { data: products } = await db
         .from("products")
         .select("image_url, product_name")
         .eq("vendor_id", vendor.id)
@@ -29,7 +37,7 @@ export const fetchAllVendors = async () => {
 };
 
 export const fetchVendorByUsername = async (username: string) => {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from("vendors")
     .select("*")
     .eq("username", username)
@@ -40,7 +48,7 @@ export const fetchVendorByUsername = async (username: string) => {
 };
 
 export const fetchProductsByVendorId = async (vendorId: string) => {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from("products")
     .select("*")
     .eq("vendor_id", vendorId)
@@ -51,7 +59,7 @@ export const fetchProductsByVendorId = async (vendorId: string) => {
 };
 
 export const fetchVendorByUserId = async (userId: string) => {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from("vendors")
     .select("*")
     .eq("user_id", userId)
@@ -63,16 +71,14 @@ export const fetchVendorByUserId = async (userId: string) => {
 
 // Auth
 export const signUpVendor = async (
-  email: string,
   password: string,
   shopName: string,
   username: string,
   phoneNumber: string
 ) => {
-  // Use username as email for simplicity: username@digitalvyapari.app
   const fakeEmail = `${username}@digitalvyapari.app`;
 
-  const { data: authData, error: authError } = await supabase.auth.signUp({
+  const { data: authData, error: authError } = await db.auth.signUp({
     email: fakeEmail,
     password,
   });
@@ -80,7 +86,7 @@ export const signUpVendor = async (
   if (authError) throw authError;
   if (!authData.user) throw new Error("Signup failed");
 
-  const { error: vendorError } = await supabase.from("vendors").insert({
+  const { error: vendorError } = await db.from("vendors").insert({
     user_id: authData.user.id,
     shop_name: shopName,
     username,
@@ -94,7 +100,7 @@ export const signUpVendor = async (
 
 export const loginVendor = async (username: string, password: string) => {
   const fakeEmail = `${username}@digitalvyapari.app`;
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await db.auth.signInWithPassword({
     email: fakeEmail,
     password,
   });
@@ -104,7 +110,7 @@ export const loginVendor = async (username: string, password: string) => {
 };
 
 export const logoutVendor = async () => {
-  await supabase.auth.signOut();
+  await db.auth.signOut();
 };
 
 // Products CRUD
@@ -114,7 +120,7 @@ export const addProduct = async (vendorId: string, product: {
   description?: string;
   image_url?: string;
 }) => {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from("products")
     .insert({ vendor_id: vendorId, ...product })
     .select()
@@ -130,7 +136,7 @@ export const updateProduct = async (productId: string, updates: {
   description?: string;
   image_url?: string;
 }) => {
-  const { error } = await supabase
+  const { error } = await db
     .from("products")
     .update(updates)
     .eq("id", productId);
@@ -139,7 +145,7 @@ export const updateProduct = async (productId: string, updates: {
 };
 
 export const deleteProduct = async (productId: string) => {
-  const { error } = await supabase
+  const { error } = await db
     .from("products")
     .delete()
     .eq("id", productId);
@@ -152,13 +158,13 @@ export const uploadProductImage = async (userId: string, file: File) => {
   const ext = file.name.split(".").pop();
   const path = `${userId}/${Date.now()}.${ext}`;
 
-  const { error } = await supabase.storage
+  const { error } = await db.storage
     .from("product-images")
     .upload(path, file);
 
   if (error) throw error;
 
-  const { data } = supabase.storage
+  const { data } = db.storage
     .from("product-images")
     .getPublicUrl(path);
 
