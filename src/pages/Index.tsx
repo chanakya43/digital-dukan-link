@@ -1,46 +1,18 @@
 import { Store } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import VendorCard from "@/components/VendorCard";
 import BottomNav from "@/components/BottomNav";
-
-// Mock data for now — will be replaced with Supabase queries
-const mockVendors = [
-  {
-    id: "1",
-    shop_name: "Sharma Ji Ki Dukan",
-    username: "sharmaji",
-    phone_number: "+91 98765 43210",
-    products: [
-      { image_url: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=200&h=200&fit=crop", product_name: "Masale" },
-      { image_url: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=200&h=200&fit=crop", product_name: "Chai" },
-      { image_url: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=200&h=200&fit=crop", product_name: "Atta" },
-    ],
-  },
-  {
-    id: "2",
-    shop_name: "Gupta Vastra Bhandar",
-    username: "guptaji",
-    phone_number: "+91 87654 32109",
-    products: [
-      { image_url: "https://images.unsplash.com/photo-1558171813-4c088753af8f?w=200&h=200&fit=crop", product_name: "Saree" },
-      { image_url: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=200&h=200&fit=crop", product_name: "Kurta" },
-    ],
-  },
-  {
-    id: "3",
-    shop_name: "Patel Electronics",
-    username: "patelbhai",
-    phone_number: "+91 76543 21098",
-    products: [
-      { image_url: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=200&h=200&fit=crop", product_name: "Mobile" },
-    ],
-  },
-];
+import { fetchAllVendors } from "@/lib/api";
 
 const Index = () => {
+  const { data: vendors = [], isLoading } = useQuery({
+    queryKey: ["vendors"],
+    queryFn: fetchAllVendors,
+  });
+
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
       <header className="sticky top-0 z-40 bg-primary px-4 py-3 shadow-md">
         <div className="container flex items-center gap-2">
           <Store className="w-7 h-7 text-primary-foreground" />
@@ -55,7 +27,6 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Hero */}
       <section className="px-4 py-6">
         <div className="container">
           <h2 className="font-heading font-bold text-xl text-foreground text-balance">
@@ -67,22 +38,41 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Vendor Grid */}
       <section className="px-4">
         <div className="container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {mockVendors.map((vendor, i) => (
-            <div
-              key={vendor.id}
-              className="opacity-0 animate-fade-up"
-              style={{ animationDelay: `${i * 80}ms` }}
-            >
-              <VendorCard vendor={vendor} />
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-card rounded-lg border p-4 animate-pulse">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-muted" />
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 bg-muted rounded w-3/4" />
+                    <div className="h-3 bg-muted rounded w-1/2" />
+                  </div>
+                </div>
+                <div className="h-9 bg-muted rounded" />
+              </div>
+            ))
+          ) : vendors.length > 0 ? (
+            vendors.map((vendor: any, i: number) => (
+              <div
+                key={vendor.id}
+                className="opacity-0 animate-fade-up"
+                style={{ animationDelay: `${i * 80}ms` }}
+              >
+                <VendorCard vendor={vendor} />
+              </div>
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <Store className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">Abhi koi dukan register nahi hui</p>
+              <p className="text-xs text-muted-foreground mt-1">Pehle vyapari banein!</p>
             </div>
-          ))}
+          )}
         </div>
       </section>
 
-      {/* CTA for vendors */}
       <section className="px-4 py-8">
         <div className="container">
           <div className="bg-primary/10 border border-primary/20 rounded-lg p-5 text-center">

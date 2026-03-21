@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Store, ArrowLeft, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
+import { signUpVendor } from "@/lib/api";
 
 const CreateShop = () => {
   const navigate = useNavigate();
@@ -27,14 +28,27 @@ const CreateShop = () => {
       toast.error("Username kam se kam 3 characters ka hona chahiye");
       return;
     }
+    if (formData.password.length < 6) {
+      toast.error("Password kam se kam 6 characters ka hona chahiye");
+      return;
+    }
 
     setLoading(true);
-    // TODO: Replace with Supabase call
-    await new Promise((r) => setTimeout(r, 800));
-    const link = `${window.location.origin}/shop/${formData.username}`;
-    setCreatedLink(link);
-    setLoading(false);
-    toast.success("Dukan ban gayi! 🎉");
+    try {
+      await signUpVendor(
+        formData.password,
+        formData.shop_name,
+        formData.username,
+        formData.phone_number
+      );
+      const link = `${window.location.origin}/shop/${formData.username}`;
+      setCreatedLink(link);
+      toast.success("Dukan ban gayi! 🎉");
+    } catch (err: any) {
+      toast.error(err.message || "Kuch galat ho gaya, dobara try karein");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const copyLink = () => {
@@ -120,101 +134,46 @@ const CreateShop = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-foreground mb-1">
-                Dukan Ka Naam
-              </label>
-              <input
-                type="text"
-                required
-                maxLength={100}
-                placeholder="e.g. Sharma General Store"
-                value={formData.shop_name}
-                onChange={(e) => setFormData((p) => ({ ...p, shop_name: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-md border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              />
+              <label className="block text-sm font-semibold text-foreground mb-1">Dukan Ka Naam</label>
+              <input type="text" required maxLength={100} placeholder="e.g. Sharma General Store"
+                value={formData.shop_name} onChange={(e) => setFormData((p) => ({ ...p, shop_name: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-md border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
             </div>
-
             <div>
-              <label className="block text-sm font-semibold text-foreground mb-1">
-                Mobile Number
-              </label>
-              <input
-                type="tel"
-                required
-                maxLength={15}
-                placeholder="+91 98765 43210"
-                value={formData.phone_number}
-                onChange={(e) => setFormData((p) => ({ ...p, phone_number: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-md border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              />
+              <label className="block text-sm font-semibold text-foreground mb-1">Mobile Number</label>
+              <input type="tel" required maxLength={15} placeholder="+91 98765 43210"
+                value={formData.phone_number} onChange={(e) => setFormData((p) => ({ ...p, phone_number: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-md border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
             </div>
-
             <div>
-              <label className="block text-sm font-semibold text-foreground mb-1">
-                Username (yeh aapka shop link banega)
-              </label>
+              <label className="block text-sm font-semibold text-foreground mb-1">Username (yeh aapka shop link banega)</label>
               <div className="flex items-center gap-0 border rounded-md overflow-hidden bg-card">
-                <span className="bg-muted px-2.5 py-2.5 text-xs text-muted-foreground border-r whitespace-nowrap">
-                  /shop/
-                </span>
-                <input
-                  type="text"
-                  required
-                  maxLength={30}
-                  pattern="[a-z0-9_]+"
-                  placeholder="apna_username"
+                <span className="bg-muted px-2.5 py-2.5 text-xs text-muted-foreground border-r whitespace-nowrap">/shop/</span>
+                <input type="text" required maxLength={30} pattern="[a-z0-9_]+" placeholder="apna_username"
                   value={formData.username}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "") }))
-                  }
-                  className="flex-1 px-2.5 py-2.5 bg-transparent text-foreground text-sm placeholder:text-muted-foreground focus:outline-none"
-                />
+                  onChange={(e) => setFormData((p) => ({ ...p, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "") }))}
+                  className="flex-1 px-2.5 py-2.5 bg-transparent text-foreground text-sm placeholder:text-muted-foreground focus:outline-none" />
               </div>
             </div>
-
             <div>
-              <label className="block text-sm font-semibold text-foreground mb-1">
-                Password
-              </label>
-              <input
-                type="password"
-                required
-                minLength={6}
-                placeholder="Kam se kam 6 characters"
-                value={formData.password}
-                onChange={(e) => setFormData((p) => ({ ...p, password: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-md border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              />
+              <label className="block text-sm font-semibold text-foreground mb-1">Password</label>
+              <input type="password" required minLength={6} placeholder="Kam se kam 6 characters"
+                value={formData.password} onChange={(e) => setFormData((p) => ({ ...p, password: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-md border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
             </div>
-
             <div>
-              <label className="block text-sm font-semibold text-foreground mb-1">
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                required
-                minLength={6}
-                placeholder="Wahi password dobara likho"
-                value={formData.confirm_password}
-                onChange={(e) => setFormData((p) => ({ ...p, confirm_password: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-md border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              />
+              <label className="block text-sm font-semibold text-foreground mb-1">Confirm Password</label>
+              <input type="password" required minLength={6} placeholder="Wahi password dobara likho"
+                value={formData.confirm_password} onChange={(e) => setFormData((p) => ({ ...p, confirm_password: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-md border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
             </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-md bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 active:scale-[0.97] transition-all disabled:opacity-50"
-            >
+            <button type="submit" disabled={loading}
+              className="w-full py-3 rounded-md bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 active:scale-[0.97] transition-all disabled:opacity-50">
               {loading ? "Dukan Ban Rahi Hai..." : "Dukan Create Karein 🚀"}
             </button>
-
             <p className="text-center text-xs text-muted-foreground">
               Pehle se dukan hai?{" "}
-              <Link to="/login" className="text-primary font-semibold hover:underline">
-                Login Karein
-              </Link>
+              <Link to="/login" className="text-primary font-semibold hover:underline">Login Karein</Link>
             </p>
           </form>
         </div>
