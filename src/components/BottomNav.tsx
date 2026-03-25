@@ -5,7 +5,7 @@ const BottomNav = () => {
   const { pathname } = useLocation();
 
   const tabs = [
-    { to: "/", icon: Home, label: "Home" },
+    { to: "/shops", icon: Home, label: "Home" },
     { to: "/search", icon: Search, label: "Search" },
   ];
 
