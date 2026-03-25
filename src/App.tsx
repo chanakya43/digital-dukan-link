@@ -10,6 +10,7 @@ import Login from "./pages/Login.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import SearchPage from "./pages/SearchPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import ProductDetail from "./pages/ProductDetail.tsx";
 
 const queryClient = new QueryClient();
 

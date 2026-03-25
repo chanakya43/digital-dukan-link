@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 interface ProductCardProps {
   product: {
     id: string;
@@ -10,7 +12,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   return (
-    <div className="bg-card rounded-lg border overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+    <Link to={`/product/${product.id}`} className="block bg-card rounded-lg border overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       <div className="aspect-square bg-muted overflow-hidden">
         <img
           src={product.image_url}
