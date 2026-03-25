@@ -34,7 +34,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           ₹{product.price.toLocaleString("en-IN")}
         </p>
       </div>
-    </div>
+    </Link>
   );
 };
 
