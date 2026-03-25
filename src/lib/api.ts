@@ -159,13 +159,13 @@ export const uploadProductImage = async (userId: string, file: File) => {
   const path = `${userId}/${Date.now()}.${ext}`;
 
   const { error } = await db.storage
-    .from("product-images")
+    .from("datastorage")
     .upload(path, file);
 
   if (error) throw error;
 
   const { data } = db.storage
-    .from("product-images")
+    .from("datastorage")
     .getPublicUrl(path);
 
   return data.publicUrl;
